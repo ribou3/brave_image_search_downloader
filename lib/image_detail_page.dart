@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'brave_search_service.dart';
 
+// 画像詳細ページを表示するStatefulWidget
 class ImageDetailPage extends StatefulWidget {
-  final ImageResult imageResult;
+  final ImageResult imageResult; // 画像結果のインスタンスを受け取る
 
   const ImageDetailPage({Key? key, required this.imageResult})
       : super(key: key);
@@ -12,6 +13,7 @@ class ImageDetailPage extends StatefulWidget {
   _ImageDetailPageState createState() => _ImageDetailPageState();
 }
 
+// 画像詳細ページの状態を管理するクラス
 class _ImageDetailPageState extends State<ImageDetailPage> {
   Widget? child;
 
@@ -23,20 +25,22 @@ class _ImageDetailPageState extends State<ImageDetailPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.open_in_browser),
-            onPressed: () => _launchURL(widget.imageResult.sourceUrl),
+            onPressed: () =>
+                _launchURL(widget.imageResult.sourceUrl), // ブラウザで画像のソースURLを開く
           ),
         ],
       ),
       body: Center(
-        child: _validateAndLoadImage(),
+        child: _validateAndLoadImage(), // 画像を検証して読み込む
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _downloadImage(context),
+        onPressed: () => _downloadImage(context), // 画像をダウンロードする
         child: const Icon(Icons.download),
       ),
     );
   }
 
+  // 画像のURLを検証して読み込むウィジェットを返す
   Widget _validateAndLoadImage() {
     final imageUrl = widget.imageResult.fullSizeUrl;
     if (_isValidUrl(imageUrl)) {
@@ -73,6 +77,7 @@ class _ImageDetailPageState extends State<ImageDetailPage> {
     }
   }
 
+  // URLが有効かどうかを検証するメソッド
   bool _isValidUrl(String url) {
     try {
       final uri = Uri.parse(url);
@@ -82,6 +87,7 @@ class _ImageDetailPageState extends State<ImageDetailPage> {
     }
   }
 
+  // URLをブラウザで開くメソッド
   void _launchURL(String urlString) async {
     final Uri url = Uri.parse(urlString);
     if (await canLaunchUrl(url)) {
@@ -91,6 +97,7 @@ class _ImageDetailPageState extends State<ImageDetailPage> {
     }
   }
 
+  // 画像をダウンロードするメソッド
   void _downloadImage(BuildContext context) async {
     print('Downloading image: ${widget.imageResult.fullSizeUrl}');
     ScaffoldMessenger.of(context).showSnackBar(
