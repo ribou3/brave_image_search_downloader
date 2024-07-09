@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'brave_search_service.dart';
 import 'image_detail_page.dart';
+import 'opensource_licenses_page .dart';
 
+// ホーム画面ウィジェットを定義する
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
@@ -10,28 +12,39 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
+// ホーム画面の状態を管理する
 class _HomePageState extends State<HomePage> {
+  // 検索テキストフィールドのコントローラ
   final TextEditingController _searchController = TextEditingController();
+  // 画像検索サービス
   final BraveSearchService _searchService = BraveSearchService();
+  // 画像検索結果のリスト
   List<ImageResult> _imageResults = [];
+  // ローディング中かどうかのフラグ
   bool _isLoading = false;
+  // セーフサーチモードかどうかのフラグ
   bool _safeSearch = true;
+  // 選択されているフィルター
   String _selectedFilter = 'すべて';
+  // 画像のオフセット
   int _offset = 0;
-  int _crossAxisCount = 2; // 新しい変数: グリッドの列数
+  // グリッドの列数
+  int _crossAxisCount = 2;
 
+  // ウィジェットを構築する
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('画像検索'),
       ),
-      drawer: _buildDrawer(),
+      drawer: _buildDrawer(), // サイドメニューを構築する
       body: Column(
         children: [
           Expanded(
             child: NotificationListener<ScrollNotification>(
-              onNotification: (ScrollNotification scrollInfo) {
+              onNotification: (scrollInfo) {
+                // スクロール時に追加の画像を読み込む
                 if (!_isLoading &&
                     scrollInfo.metrics.pixels ==
                         scrollInfo.metrics.maxScrollExtent) {
@@ -42,7 +55,7 @@ class _HomePageState extends State<HomePage> {
               },
               child: GridView.builder(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: _crossAxisCount, // 更新: 動的な列数
+                  crossAxisCount: _crossAxisCount, // 動的な列数
                   crossAxisSpacing: 4,
                   mainAxisSpacing: 4,
                 ),
@@ -50,10 +63,12 @@ class _HomePageState extends State<HomePage> {
                 itemBuilder: (context, index) {
                   return GestureDetector(
                     onTap: () => _openImageDetail(_imageResults[index]),
+                    // 画像をタップしたら詳細ページを開く
                     child: Image.network(
                       _imageResults[index].thumbnailUrl,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
+                        // エラー時にエラーメッセージを表示
                         print('Error loading image: $error');
                         WidgetsBinding.instance!.addPostFrameCallback((_) {
                           setState(() {
@@ -68,16 +83,18 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          if (_isLoading) const CircularProgressIndicator(),
+          if (_isLoading)
+            const CircularProgressIndicator(), // ローディング中ならインジケーターを表示
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showSearchField,
+        onPressed: _showSearchField, // 検索フィールドを表示する
         child: const Icon(Icons.search),
       ),
     );
   }
 
+  // サイドメニューを構築する
   Widget _buildDrawer() {
     return Drawer(
       child: ListView(
@@ -94,15 +111,14 @@ class _HomePageState extends State<HomePage> {
             title: const Text('検索フィルター'),
             trailing: DropdownButton<String>(
               value: _selectedFilter,
-              onChanged: (String? newValue) {
-                if (newValue != null) {
-                  setState(() {
-                    _selectedFilter = newValue;
-                  });
-                }
+              onChanged: (newValue) {
+                // フィルターを変更したら検索結果を更新する
+                setState(() {
+                  _selectedFilter = newValue ?? 'すべて';
+                });
               },
               items: <String>['すべて', '写真', 'イラスト', 'GIF']
-                  .map<DropdownMenuItem<String>>((String value) {
+                  .map<DropdownMenuItem<String>>((value) {
                 return DropdownMenuItem<String>(
                   value: value,
                   child: Text(value),
@@ -113,7 +129,8 @@ class _HomePageState extends State<HomePage> {
           SwitchListTile(
             title: const Text('セーフサーチ'),
             value: _safeSearch,
-            onChanged: (bool value) {
+            onChanged: (value) {
+              // セーフサーチモードを変更したら検索結果を更新する
               setState(() {
                 _safeSearch = value;
               });
@@ -123,15 +140,14 @@ class _HomePageState extends State<HomePage> {
             title: const Text('グリッドの列数'),
             trailing: DropdownButton<int>(
               value: _crossAxisCount,
-              onChanged: (int? newValue) {
-                if (newValue != null) {
-                  setState(() {
-                    _crossAxisCount = newValue;
-                  });
-                }
+              onChanged: (newValue) {
+                // グリッドの列数を変更したらレイアウトを更新する
+                setState(() {
+                  _crossAxisCount = newValue ?? 2;
+                });
               },
               items: List.generate(10, (index) => index + 1)
-                  .map<DropdownMenuItem<int>>((int value) {
+                  .map<DropdownMenuItem<int>>((value) {
                 return DropdownMenuItem<int>(
                   value: value,
                   child: Text(value.toString()),
@@ -139,33 +155,42 @@ class _HomePageState extends State<HomePage> {
               }).toList(),
             ),
           ),
+          ListTile(
+            title: Text('オープンソースライセンス'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const LicensePage()),
+              );
+            },
+          )
         ],
       ),
     );
   }
 
+  // 検索フィールドを表示するダイアログを表示する
   void _showSearchField() {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('画像を検索'), // ダイアログのタイトル
+          title: const Text('画像を検索'),
           content: TextField(
-            controller: _searchController, // 検索テキストフィールドのコントローラ
-            decoration:
-                const InputDecoration(hintText: "検索キーワードを入力"), // ヒントテキスト
-            onSubmitted: (_) => _searchImages(), // 検索キーワードを送信したときの処理
+            controller: _searchController,
+            decoration: const InputDecoration(hintText: "検索キーワードを入力"),
+            onSubmitted: (_) => _searchImages(),
           ),
           actions: [
             TextButton(
-              child: const Text('キャンセル'), // キャンセルボタン
-              onPressed: () => Navigator.pop(context), // ダイアログを閉じる処理
+              child: const Text('キャンセル'),
+              onPressed: () => Navigator.pop(context),
             ),
             TextButton(
-              child: const Text('検索'), // 検索ボタン
+              child: const Text('検索'),
               onPressed: () {
                 Navigator.pop(context);
-                _searchImages(); // 検索を実行する処理
+                _searchImages();
               },
             ),
           ],
@@ -174,72 +199,81 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // 画像を検索する
   Future<void> _searchImages() async {
     setState(() {
-      _isLoading = true; // ローディング中に設定
-      _offset = 0; // オフセットをリセット
-      _imageResults.clear(); // 検索結果をクリア
+      _isLoading = true;
+      _offset = 0;
+      _imageResults.clear();
     });
 
     try {
       final results = await _searchService.searchImages(
-        // 画像を検索する処理
-        _searchController.text, // 検索キーワード
-        _selectedFilter, // フィルター
-        _safeSearch, // セーフサーチ
-        _offset, // オフセット
+        _searchController.text,
+        _selectedFilter,
+        _safeSearch,
+        _offset,
       );
       setState(() {
-        _imageResults = results; // 検索結果を設定
-        _isLoading = false; // ローディング中を解除
-        _offset += results.length; // オフセットを更新
+        _imageResults = results;
+        _isLoading = false;
+        _offset += results.length;
       });
     } catch (e) {
       setState(() {
-        _isLoading = false; // ローディング中を解除
+        _isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('画像の検索中にエラーが発生しました: $e')), // エラーメッセージの表示
+        SnackBar(content: Text('画像の検索中にエラーが発生しました: $e')),
       );
     }
   }
 
+  // 追加の画像を読み込む
   Future<void> _loadMoreImages() async {
-    if (!_isLoading) {
-      setState(() {
-        _isLoading = true; // ローディング中に設定
-      });
+    if (_isLoading) return; // ローディング中ならリターンする
 
-      try {
-        final results = await _searchService.searchImages(
-          // 画像を追加で読み込む処理
-          _searchController.text, // 検索キーワード
-          _selectedFilter, // フィルター
-          _safeSearch, // セーフサーチ
-          _offset, // オフセット
-        );
-        setState(() {
-          _imageResults.addAll(results); // 追加の検索結果をリストに追加
-          _isLoading = false; // ローディング中を解除
-          _offset += results.length; // オフセットを更新
-        });
-      } catch (e) {
-        setState(() {
-          _isLoading = false; // ローディング中を解除
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('エラーが発生しました: $e')), // エラーメッセージの表示
-        );
-      }
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final results = await _searchService.searchImages(
+        _searchController.text,
+        _selectedFilter,
+        _safeSearch,
+        _offset,
+      );
+
+      setState(() {
+        if (results.isNotEmpty) {
+          _imageResults.addAll(results);
+          _offset += results.length;
+        }
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      print('Error loading more images: $e');
     }
   }
 
+  void _startNewSearch() {
+    setState(() {
+      _imageResults.clear();
+      _offset = 0;
+    });
+    _loadMoreImages();
+  }
+
+  // 画像詳細ページを開く
   void _openImageDetail(ImageResult imageResult) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            ImageDetailPage(imageResult: imageResult), // 画像詳細ページを開く処理
+        builder: (context) => ImageDetailPage(imageResult: imageResult),
       ),
     );
   }
