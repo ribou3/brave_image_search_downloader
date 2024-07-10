@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+//import 'package:url_launcher/url_launcher.dart';
 import 'brave_search_service.dart';
 import 'image_detail_page.dart';
-import 'opensource_licenses_page .dart';
+//import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 
 // ホーム画面ウィジェットを定義する
 class HomePage extends StatefulWidget {
@@ -44,7 +44,7 @@ class _HomePageState extends State<HomePage> {
           Expanded(
             child: NotificationListener<ScrollNotification>(
               onNotification: (scrollInfo) {
-                // スクロール時に追加の画像を読み込む
+                // 最大スクロール時に追加の画像を読み込む
                 if (!_isLoading &&
                     scrollInfo.metrics.pixels ==
                         scrollInfo.metrics.maxScrollExtent) {
@@ -179,7 +179,10 @@ class _HomePageState extends State<HomePage> {
           content: TextField(
             controller: _searchController,
             decoration: const InputDecoration(hintText: "検索キーワードを入力"),
-            onSubmitted: (_) => _searchImages(),
+            onSubmitted: (_) {
+              _searchImages();
+              Navigator.pop(context);
+            },
           ),
           actions: [
             TextButton(
@@ -218,6 +221,7 @@ class _HomePageState extends State<HomePage> {
         _imageResults = results;
         _isLoading = false;
         _offset += results.length;
+        print("searchimage's offset is $_offset");
       });
     } catch (e) {
       setState(() {
@@ -249,6 +253,7 @@ class _HomePageState extends State<HomePage> {
         if (results.isNotEmpty) {
           _imageResults.addAll(results);
           _offset += results.length;
+          print("currnt offset is $_offset");
         }
         _isLoading = false;
       });
@@ -260,13 +265,13 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _startNewSearch() {
-    setState(() {
-      _imageResults.clear();
-      _offset = 0;
-    });
-    _loadMoreImages();
-  }
+  // void _startNewSearch() {
+  //   setState(() {
+  //     _imageResults.clear();
+  //     _offset = 0;
+  //   });
+  //   _loadMoreImages();
+  // }
 
   // 画像詳細ページを開く
   void _openImageDetail(ImageResult imageResult) {
